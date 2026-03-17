@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Gallery with AI Captions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #E3F2FD;
+            --accent-blue: #B3E5FC;
+            --dark-blue: #81D4FA;
+            --text-dark: #37474F;
+            --text-light: #90A4AE;
+            --success: #A5D6A7;
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #E3F2FD 0%, #E1F5FE 100%);
+            min-height: 100vh;
+            padding: 24px;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        header h1 {
+            font-family: 'Caveat', cursive;
+            font-size: 3.5rem;
+            color: var(--dark-blue);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 28px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            border: 2px solid rgba(179, 229, 252, 0.3);
+        }
+
+        .sidebar h2 {
+            font-size: 1.4rem;
+            margin-bottom: 24px;
+            color: var(--text-dark);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar h2::before {
+            content: '📁';
+            font-size: 1.6rem;
+        }
+
+        /* Upload section */
+        .upload-section {
+            margin-bottom: 28px;
+        }
+
+        .upload-section label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        .upload-section input[type="text"],
+        .upload-section input[type="file"] {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--white);
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .upload-section input[type="text"]::placeholder,
+        .upload-section input[type="file"]::placeholder {
+            color: var(--text-light);
+        }
+
+        .upload-section input[type="text"]:focus,
+        .upload-section input[type="file"]:focus {
+            outline: none;
+            border-color: var(--dark-blue);
+            background: #F1F8FB;
+            box-shadow: 0 0 0 4px rgba(129, 212, 250, 0.1);
+        }
+
+        .upload-section input[type="file"] {
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        .upload-section input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section input[type="file"]::file-selector-button:hover {
+            background: var(--dark-blue);
+            color: var(--white);
+        }
+
+        .upload-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--dark-blue), var(--accent-blue));
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Albums list */
+        .albums-list {
+            border-top: 2px solid var(--primary-blue);
+            padding-top: 20px;
+        }
+
+        .album-item {
+            padding: 14px;
+            margin-bottom: 10px;
+            background: var(--primary-blue);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .album-item:hover {
+            background: var(--accent-blue);
+            border-color: var(--dark-blue);
+            transform: translateX(4px);
+        }
+
+        .album-item.active {
+            background: var(--accent-blue);
+            border-color: var(--dark-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .album-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .album-count {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Main gallery */
+        .gallery-container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid rgba(179, 229, 252, 0.3);
+        }
+
+        .gallery-header {
+            margin-bottom: 36px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .gallery-header h2 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .gallery-header p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        /* Gallery grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 24px;
+        }
+
+        .image-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            animation: scaleIn 0.4s ease-out;
+        }
+
+        .image-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-blue);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+        }
+
+        .image-info {
+            padding: 16px;
+            background: var(--white);
+        }
+
+        .image-filename {
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 12px;
+        }
+
+        .caption-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-blue);
+            color: var(--text-dark);
+            border: 2px solid var(--accent-blue);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .caption-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--dark-blue);
+        }
+
+        .caption-btn.loading {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--white);
+            cursor: not-allowed;
+        }
+
+        .caption-text {
+            margin-top: 12px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(227, 242, 253, 0.5), rgba(179, 229, 252, 0.3));
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            line-height: 1.5;
+            border-left: 3px solid var(--dark-blue);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 20px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 28px;
+            border-bottom: 2px solid var(--primary-blue);
+        }
+
+        .modal-header h3 {
+            color: var(--text-dark);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        .modal-close:hover {
+            background: var(--primary-blue);
+            color: var(--dark-blue);
+        }
+
+        .modal-body {
+            padding: 28px;
+        }
+
+        .modal-body img {
+            width: 100%;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .modal-caption {
+            background: linear-gradient(135deg, rgba(227, 242, 253, 0.7), rgba(179, 229, 252, 0.4));
+            padding: 16px;
+            border-radius: 12px;
+            color: var(--text-dark);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            border-left: 4px solid var(--dark-blue);
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid var(--primary-blue);
+            border-top: 3px solid var(--dark-blue);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                order: 2;
+            }
+
+            .gallery-container {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 16px;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+
+            .gallery-container {
+                padding: 24px;
+            }
+
+            .modal-content {
+                max-height: 90vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+
+            .sidebar {
+                padding: 16px;
+            }
+
+            .gallery-container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Gallery</h1>
+            <p>Organize photos with AI-powered captions</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h2>Your Albums</h2>
+                
+                <div class="upload-section">
+                    <label for="album-name">Album Name</label>
+                    <input 
+                        type="text" 
+                        id="album-name" 
+                        placeholder="Summer 2024..."
+                    >
+                    
+                    <label for="image-files">Select Photos</label>
+                    <input 
+                        type="file" 
+                        id="image-files" 
+                        multiple 
+                        accept="image/*"
+                    >
+                    
+                    <button class="upload-btn" id="upload-btn">
+                        ✨ Upload Photos
+                    </button>
+                </div>
+
+                <div class="albums-list" id="albums-container">
+                    <!-- Albums will be loaded here -->
+                </div>
+            </aside>
+
+            <!-- Gallery -->
+            <main class="gallery-container">
+                <div class="gallery-header">
+                    <h2 id="gallery-title">Select an album</h2>
+                    <p id="gallery-subtitle">Choose an album from the left to view photos</p>
+                </div>
+
+                <div class="gallery-grid" id="gallery-grid">
+                    <!-- Images will be loaded here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for full image view -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Image Viewer</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="modal-image" src="" alt="">
+                <div class="modal-caption" id="modal-caption"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlbum = null;
+        let albums = {};
+
+        // Load albums on page load
+        document.addEventListener('DOMContentLoaded', loadAlbums);
+
+        // Upload handler
+        document.getElementById('upload-btn').addEventListener('click', uploadImages);
+
+        async function loadAlbums() {
+            try {
+                const response = await fetch('/api/albums');
+                albums = await response.json();
+                renderAlbums();
+            } catch (error) {
+                console.error('Error loading albums:', error);
+            }
+        }
+
+        function renderAlbums() {
+            const container = document.getElementById('albums-container');
+            
+            if (Object.keys(albums).length === 0) {
+                container.innerHTML = '<p style="color: #90A4AE; text-align: center; font-size: 0.9rem; padding: 16px 0;">No albums yet. Create one above!</p>';
+                return;
+            }
+
+            container.innerHTML = Object.values(albums).map(album => `
+                <div class="album-item" onclick="loadAlbum('${album.name}')">
+                    <div class="album-name">${album.name}</div>
+                    <div class="album-count">${album.image_count} photo${album.image_count !== 1 ? 's' : ''}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadAlbum(albumName) {
+            currentAlbum = albumName;
+            
+            try {
+                const response = await fetch(`/api/albums/${albumName}`);
+                const data = await response.json();
+                renderGallery(data.album, data.images);
+                
+                // Update sidebar active state
+                document.querySelectorAll('.album-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+                event.target.closest('.album-item').classList.add('active');
+            } catch (error) {
+                console.error('Error loading album:', error);
+            }
+        }
+
+        function renderGallery(albumName, images) {
+            document.getElementById('gallery-title').textContent = albumName;
+            document.getElementById('gallery-subtitle').textContent = `${images.length} photo${images.length !== 1 ? 's' : ''}`;
+
+            const gallery = document.getElementById('gallery-grid');
+            
+            if (images.length === 0) {
+                gallery.innerHTML = '<div class="empty-state"><p>No photos in this album yet</p></div>';
+                return;
+            }
+
+            gallery.innerHTML = images.map(img => `
+                <div class="image-card">
+                    <img src="${img.url}" alt="${img.filename}" onclick="openModal('${img.url}', '${img.filename}')">
+                    <div class="image-info">
+                        <div class="image-filename">${img.filename}</div>
+                        <button class="caption-btn" onclick="generateCaption(this, '${img.url}')">
+                            ✨ Get Caption
+                        </button>
+                        <div class="caption-text" style="display: none;"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function generateCaption(button, imageUrl) {
+            const captionDiv = button.nextElementSibling;
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner"></span>Loading...';
+
+            try {
+                const response = await fetch('/api/caption', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_url: imageUrl })
+                });
+
+                const data = await response.json();
+                
+                if (data.caption) {
+                    captionDiv.textContent = data.caption;
+                    captionDiv.style.display = 'block';
+                    button.textContent = '✨ Update Caption';
+                } else {
+                    captionDiv.textContent = 'Could not generate caption';
+                    captionDiv.style.display = 'block';
+                }
+            } catch (error) {
+                captionDiv.textContent = 'Error generating caption: ' + error.message;
+                captionDiv.style.display = 'block';
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
+        function openModal(imageUrl, filename) {
+            document.getElementById('modal-image').src = imageUrl;
+            document.getElementById('modal-title').textContent = filename;
+            document.getElementById('modal-caption').textContent = 'Click "Get Caption" on the card to see AI description';
+            document.getElementById('imageModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('show');
+        }
+
+        async function uploadImages() {
+            const albumName = document.getElementById('album-name').value.trim();
+            const fileInput = document.getElementById('image-files');
+            const files = fileInput.files;
+
+            if (!albumName) {
+                alert('Please enter an album name');
+                return;
+            }
+
+            if (files.length === 0) {
+                alert('Please select at least one photo');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('album', albumName);
+            
+            for (let file of files) {
+                formData.append('files', file);
+            }
+
+            const btn = document.getElementById('upload-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Uploading...';
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Successfully uploaded ${data.uploaded.length} photo${data.uploaded.length !== 1 ? 's' : ''}`);
+                    document.getElementById('album-name').value = '';
+                    fileInput.value = '';
+                    await loadAlbums();
+                    loadAlbum(albumName);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✨ Upload Photos';
+            }
+        }
+
+        // Close modal on background click
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>
