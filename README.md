@@ -1,9 +1,9 @@
-# 📸 AI Photo Gallery
+# AI Photo Gallery
 
 A beautiful, minimalist web-based photo gallery with **AI-powered image captions**. Upload photos, organize them into albums, and automatically generate descriptive captions using machine learning.
 
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
